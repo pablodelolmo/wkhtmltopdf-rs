@@ -12,7 +12,7 @@ use std::marker::PhantomData;
 use std::os::raw::{c_char, c_int};
 use std::sync::{mpsc, Arc, Mutex};
 use std::{ptr, slice};
-use thread_id;
+//use thread_id;
 use wkhtmltox_sys::pdf::*;
 
 use super::{Error, PdfOutput, Result};
@@ -31,7 +31,7 @@ enum WkhtmltopdfState {
 lazy_static! {
     // Globally count wkhtmltopdf handles so we can safely init/deinit the underlying wkhtmltopdf singleton
     static ref WKHTMLTOPDF_STATE: Mutex<WkhtmltopdfState> = Mutex::new(WkhtmltopdfState::New);
-    static ref WKHTMLTOPDF_INIT_THREAD: usize = thread_id::get();
+    static ref WKHTMLTOPDF_INIT_THREAD: usize = 0;
 
     // Globally track callbacks since wkhtmltopdf doesn't allow injecting any userdata
     // The HashMap key is the converter's raw pointer cast as usize, so we can have unique callbacks per converter
@@ -108,11 +108,11 @@ impl PdfGlobalSettings {
     ///
     /// This may only be called after `pdf_init` has successfully initialized wkhtmltopdf
     pub fn new() -> Result<PdfGlobalSettings> {
-        if *WKHTMLTOPDF_INIT_THREAD != thread_id::get() {
+        if *WKHTMLTOPDF_INIT_THREAD != 0 {
             // A lot of QT functionality expects to run from the same thread that it was first initialized on
             return Err(Error::ThreadMismatch(
                 *WKHTMLTOPDF_INIT_THREAD,
-                thread_id::get(),
+                0,
             ));
         }
 
